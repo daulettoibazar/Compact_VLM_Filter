@@ -14,7 +14,7 @@
 
 ### 🚀 Overview
 
-**Trust the Model** introduces a lightweight, compact vision-language model (VLM) that acts as an **in-context judge** to filter noisy image-text data at scale — without relying on large full-scale VLMs or extra filtering modules.
+**Compact VLMs as In-Context Judges** introduces a lightweight, compact vision-language model (VLM) that acts as an **in-context judge** to filter noisy image-text data at scale — without relying on large full-scale VLMs or extra filtering modules.
 
 > 🧠 Instead of stacking filtration on top of large models, we **trust a small, purpose-built VLM** trained on high-quality data to internally assess alignment and linguistic fluency.
 
