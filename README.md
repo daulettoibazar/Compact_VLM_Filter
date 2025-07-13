@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="TODO: arxiv link"><img src="https://img.shields.io/badge/arXiv-Paper-blue" alt="arXiv Paper"></a>
-  <a href="https://huggingface.co/Dauka-transformers/Compact_VLM_filter><img src="https://img.shields.io/badge/HuggingFace-Model-yellow" alt="HuggingFace Model"></a>
+  <a href="https://huggingface.co/Dauka-transformers/Compact_VLM_filter"><img src="https://img.shields.io/badge/HuggingFace-Model-yellow" alt="HuggingFace Model"></a>
   <a href="https://huggingface.co/datasets/Dauka-transformers/Tiny_VLM_filter_data"><img src="https://img.shields.io/badge/HuggingFace-Dataset-yellow" alt="HuggingFace Dataset"></a>
   <a href="TODO: license link"><img src="https://img.shields.io/badge/License-Apache_2.0-green.svg" alt="License"></a>
 </p>
