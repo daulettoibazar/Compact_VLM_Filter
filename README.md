@@ -55,7 +55,7 @@
 
 ---
 
-### 🔧 Quickstart (Coming Soon)
+### 🔧 Quickstart
 
 ```bash
 # Clone the repo
