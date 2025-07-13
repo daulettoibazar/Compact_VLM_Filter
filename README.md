@@ -2,7 +2,7 @@
   <img src="TODO: add header image link here" alt="Trust the Model" width="800"/>
 </p>
 
-<h1 align="center">🤖 TRUST THE MODEL: Compact VLMs as In-Context Judges for Image-Text Data Quality</h1>
+<h1 align="center"> TRUST THE MODEL: Compact VLMs as In-Context Judges for Image-Text Data Quality</h1>
 
 <p align="center">
   <a href="TODO: arxiv link"><img src="https://img.shields.io/badge/arXiv-Paper-blue" alt="arXiv Paper"></a>
