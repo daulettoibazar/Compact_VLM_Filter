@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="TODO: add header image link here" alt="Trust the Model" width="800"/>
+  <img src="images/logo.png" alt="Trust the Model" width="800"/>
 </p>
 
 <h1 align="center"> TRUST THE MODEL: Compact VLMs as In-Context Judges for Image-Text Data Quality</h1>
