@@ -15,19 +15,18 @@
 
 ### 🚀 Overview
 
-**Compact VLMs as In-Context Judges** introduces a lightweight, compact vision-language model (VLM) that acts as an **in-context judge** to filter noisy image-text data at scale — without relying on large full-scale VLMs or extra filtering modules.
+**Compact VLMs as In-Context Judge** introduces a lightweight, compact vision-language model (VLM) that acts as an **in-context judge** to filter noisy image-text data at scale — without relying on large, resource-intensive VLMs or costly external API calls.
 
-> 🧠 Instead of stacking filtration on top of large models, we **trust a small, purpose-built VLM** trained on high-quality data to internally assess alignment and linguistic fluency.
+> 🧠 Instead of stacking scoring modules on top of VLMs, we **test a small, purpose-built VLM** trained on high-quality data to internally assess alignment and quality of image/text pairs.
 
 ---
 
 ### 💡 Key Highlights
 
-- 📦 **Compact VLM** used as an internal oracle
-- 🔍 Filters noisy web data without auxiliary modules
-- 💬 Improves **image/text alignment** and **caption fluency**
+- 📦 **Compact VLM** used as an internal filtration function
+- 💬 Improves **image/text alignment** and **caption fluency** (verified by image/text cosine similarity and caption perplexity scores)
 - 🚫 No extra parameters, minimal overhead
-- ⚖️ Competes with or outperforms large web-crawled datasets
+- ⚖️ Competes with or outperforms larger, noisy datasets in downstream captioning performance
 
 ---
 
@@ -35,24 +34,24 @@
 
 1. **Train a compact VLM** on curated image-caption datasets.
 2. Use it as an **in-context evaluator** of image-text pairs.
-3. Filter out misaligned, noisy, or linguistically poor samples.
+3. Filter out misaligned, noisy, or linguistically poor samples (Set the appropriate threshold value during inference).
 4. Use the filtered high-quality dataset for downstream VLM training.
 
 ---
 
 ### 🧪 Results
 
-- Our compact VLM rivaled or exceeded the quality of models trained on larger web-crawled data.
+- Model trained of filtered, smaller dataset (only 18% of original data) rivaled or exceeded the quality of models trained on larger, unfiltered dataset.
 - Demonstrated improvements in both **caption quality** and **data alignment**.
 
 ---
 
 ### 📂 Resources
 
-- 📄 **[Paper on arXiv](TODO)**  
-- 🤗 **[Model on HuggingFace](TODO)**  
-- 📁 **[Dataset Access (Coming Soon)](TODO)**  
-- 🔧 **[Training Scripts](TODO)**
+- 📄 **[Paper (coming soon)]()**  
+- 🤗 **[Model on HuggingFace](https://huggingface.co/Dauka-transformers/Compact_VLM_filter)**  
+- 📁 **[Dataset Access](https://huggingface.co/datasets/Dauka-transformers/Tiny_VLM_filter_data)**  
+- 🔧 **[Filtration model training scripts (Coming soon)]()**
 
 ---
 
@@ -60,26 +59,36 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourname/vlm-judge
-cd vlm-judge
-
-# Download model
-TODO
+git clone https://github.com/daulettoibazar/Compact_VLM_Filter.git
+cd Compact_VLM_Filter
 
 # Run evaluation
-python judge.py --input data/images_and_captions.jsonl
+python scripts/filter_data.py --model_path HF_repo --output_image_folder "images_folder" --output_path "path to filtered json dataset" --dataset_path "Path to your original image/caption dataset json"
 
 ```
+* Please make sure that your original image/caption dataset json file contains following keys: "image_path", "caption".
+
+
+### 🤝 Acknowledgement
+
+Special thanks to the **Qwen team** for open-sourcing the [Qwen2-VL](https://huggingface.co/Qwen/Qwen-VL) model series, which forms the backbone of this project.
+
+We also gratefully acknowledge the creators of the following datasets and research works, which provided the foundation for generating and evaluating the samples in this dataset:
+
+- **[pixparse/cc12m-wds](https://huggingface.co/datasets/pixparse/cc12m-wds)**  
+  Based on the paper *Conceptual 12M: Pushing Web-Scale Image-Text Pre-Training To Recognize Long-Tail Visual Concepts*  
+  [Soravit Changpinyo, Piyush Sharma, Nan Ding, Radu Soricut, 2021](https://arxiv.org/abs/2102.08981).  
+
+- **[UCSC-VLAA/Recap-COCO-30K](https://huggingface.co/datasets/UCSC-VLAA/Recap-COCO-30K)**  
+  Derived from the paper *What If We Recaption Billions of Web Images with LLaMA-3?*  
+  [Wang et al., 2024](https://arxiv.org/abs/2405.13587).
+
+These datasets were instrumental in training our filtration-oriented small VLM.
+
 
 ### Citations
 
 If you find this work useful, please consider citing:
 
 ```code
-@article{your2025trust,
-  title={TRUST THE MODEL: Compact VLMs as In-Context Judges for Image-Text Data Quality},
-  author={YourName, et al.},
-  journal={arXiv preprint arXiv:TODO},
-  year={2025}
-}
 ```

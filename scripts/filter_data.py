@@ -41,7 +41,7 @@ class Qwen2VLFilter:
         print(f"Loading Compact VLM filtration model from {model_path}...")
         min_pixels = 256 * 28 * 28
         max_pixels = 1280 * 28 * 28
-        self.processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True, min_pixels=min_pixels, max_pixels=max_pixels)
+        self.processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct", trust_remote_code=True, min_pixels=min_pixels, max_pixels=max_pixels)
         self.model = Qwen2VLForConditionalGeneration.from_pretrained(
             model_path,
             device_map="cuda",
@@ -233,11 +233,11 @@ def save_filtered_dataset(filtered_data, output_image_folder, output_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Filter image/caption dataset using Qwen2-VL model")
-    parser.add_argument("--model_path", type=str, required=True, help="Path to the Qwen2-VL model")
+    parser.add_argument("--model_path", type=str, default="Dauka-transformers/Compact_VLM_filter", help="Path to the Qwen2-VL model")
     parser.add_argument("--batch_size", type=int, default=16, help="Batch size for filtering")
     parser.add_argument("--output_image_folder", type=str, default="./filtered_multimodal_dataset", help="Path to save the filtered images")
     parser.add_argument("--output_path", type=str, default="./filtered_dataset.json", help="Path to save the filtered dataset")
-    parser.add_argument("--dataset_path", type=str, default="./filter_data.json", help="Path to the dataset to filter")
+    parser.add_argument("--dataset_path", type=str, default="./data_to_filter.json", help="Path to the initial image/text dataset")
 
     args = parser.parse_args()
     
