@@ -31,78 +31,121 @@ def load_multimodal_datasets(dataset_path):
 
 
 class Qwen2VLFilter:
-    """Class to filter image-text pairs using Compact VLM filtration model"""
+    """Class to filter image-text pairs using Qwen2-VL model with optimized batching"""
     
     def __init__(self, model_path, batch_size=64):
-
         self.batch_size = batch_size
+        self.score_pattern = re.compile(r'score:\s*\{(\d+)\}')
         
-            
-        print(f"Loading Compact VLM filtration model from {model_path}...")
+        print(f"Loading Qwen2-VL model from {model_path}...")
         min_pixels = 256 * 28 * 28
         max_pixels = 1280 * 28 * 28
-        self.processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct", trust_remote_code=True, min_pixels=min_pixels, max_pixels=max_pixels)
+        self.processor = AutoProcessor.from_pretrained(
+            "Qwen/Qwen2-VL-2B-Instruct", 
+            trust_remote_code=True, 
+            min_pixels=min_pixels, 
+            max_pixels=max_pixels
+        )
         self.model = Qwen2VLForConditionalGeneration.from_pretrained(
             model_path,
             device_map="cuda",
-            torch_dtype="auto"
+            torch_dtype=torch.float16, 
+            low_cpu_mem_usage=True
         )
         
-        print(f"Model loaded successfully!")
+        self.model.eval() 
+        print(f"Qwen2-VL model loaded successfully!")
+    
+    def preprocess_images_batch(self, batch_data):
+        """Efficiently preprocess images in batch"""
+        images = []
+        texts = []
+        
+        for item in batch_data:
+            # Convert image bytes to PIL Image efficiently
+            if isinstance(item['image'], bytes):
+                try:
+                    image = Image.open(io.BytesIO(item['image']))
+                    # Convert to RGB if needed (more efficient than doing it later)
+                    if image.mode != 'RGB':
+                        image = image.convert('RGB')
+                    images.append(image)
+                    texts.append(item['text'])
+                except Exception as e:
+                    print(f"Error processing image: {e}")
+                    continue
+            else:
+                if item['image'].mode != 'RGB':
+                    item['image'] = item['image'].convert('RGB')
+                images.append(item['image'])
+                texts.append(item['text'])
+        
+        return images, texts
+    
+    def create_batch_messages(self, images, texts):
+        """Create messages for batch processing"""
+        all_messages = []
+        
+        for image, text in zip(images, texts):
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are helpful AI assistant"
+                },
+                {   
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image", 
+                            "image": image,
+                        },
+                        {"type": "text", "text": f"Analyze and assess the quality of following image-caption pair:\n{text}"},
+                    ],
+                }
+            ]
+            all_messages.append(messages)
+        
+        return all_messages
     
     def preprocess_batch(self, batch_data):
         """
-        Preprocess a batch of image-text pairs
+        Preprocess a batch of image-text pairs more efficiently
         
         Args:
             batch_data: List of dictionaries containing 'image' and 'text'
             
         Returns:
-            List of processed inputs ready for model
+            Processed inputs ready for model (single batch)
         """
-        processed_inputs = []
-
-        for item in batch_data:
-            if isinstance(item['image'], str) and os.path.exists(item['image']):
-                image = Image.open(item['image'])
-            else:
-                image = item['image']
-
-            messages = [
-            {
-                "role": "system",
-                "content": "You are helpful AI assistant"
-            },
-            {   
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "image": image,
-                    },
-                    {"type": "text", "text": "Analyze and assess the quality of following image-caption pair:\n" + item["text"]},
-            ],}]
-
-            # Preparation for inference
-            text = self.processor.apply_chat_template(
-                messages, tokenize=False, add_generation_prompt=True
-            )
-            image_inputs, video_inputs = process_vision_info(messages)
-            inputs = self.processor(
-                text=[text],
-                images=image_inputs,
-                videos=video_inputs,
-                padding=True,
-                return_tensors="pt",
-            )
-
-            processed_inputs.append(inputs)
-
-        return processed_inputs
+        images, texts = self.preprocess_images_batch(batch_data)
+        
+        if not images:
+            return None
+        
+        all_messages = self.create_batch_messages(images, texts)
+        
+        batch_texts = []
+        batch_image_inputs = []
+        
+        for messages in all_messages:
+            text = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            image_inputs, _ = process_vision_info(messages)
+            batch_texts.append(text)
+            batch_image_inputs.extend(image_inputs)
+        
+        # Create single batch input
+        inputs = self.processor(
+            text=batch_texts,
+            images=batch_image_inputs,
+            padding=True,
+            return_tensors="pt",
+        )
+        
+        return inputs
     
     def process_batch_outputs(self, outputs_batch):
         """
-        Process model outputs to determine which pairs to keep. Currently checks for a score >= 9. Please adjust as needed.
+        Process model outputs to determine which pairs to keep
         
         Args:
             outputs_batch: List of model outputs
@@ -114,37 +157,29 @@ class Qwen2VLFilter:
         
         for output in outputs_batch:
             try:
-                match = re.search(r'score:\s*\{(\d+)\}', output)
+                match = self.score_pattern.search(output)
                 if match:
                     score = int(match.group(1))
-                    #TODO: Adjust the threshold as needed
-                    if score>=9:
+
+                    #TODO: Adjust the threshold based on your requirements
+                    if score >= 9:
                         keep_flags.append(True)
                     else:
                         keep_flags.append(False)
                 else:
                     print(f"Encountered unexpected outputs: {output}")
                     keep_flags.append(False)
-                
+
             except Exception as e:
                 print(f"Error extracting score from model output: {e}")
                 print(f"Generated text: {output}")
-                keep_flags.append(False)  # Default to not keeping if error
+                keep_flags.append(False)
         
         return keep_flags
     
+
+    
     def filter_dataset(self, dataset):
-        """
-        Filter dataset based on Qwen2-VL outputs
-        
-        Args:
-            dataset: List of dictionaries with 'image', 'text', and 'source' keys
-            progress_save_path: File path to save progress during filtering
-            save_interval: How often to save progress (number of batches)
-            
-        Returns:
-            Filtered dataset and scores
-        """
         filtered_dataset = []
         
         # Process in batches
@@ -156,33 +191,45 @@ class Qwen2VLFilter:
             batch_data = dataset[start_idx:end_idx]
             
             try:
-
-                processed_inputs = self.preprocess_batch(batch_data)
+                inputs = self.preprocess_batch(batch_data)
                 
-                batch_outputs = []
+                if inputs is None:
+                    print(f"Skipping empty batch {batch_idx}")
+                    continue
+                
 
                 with torch.inference_mode():
-                    for inputs in processed_inputs:
-                        inputs = inputs.to("cuda")
+                    inputs = inputs.to("cuda")
+                    
 
-                        generated_ids = self.model.generate(
-                            **inputs,
-                            max_new_tokens=512,
-                        )
-
-                        generated_ids_trimmed = [out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
-                        output_text = self.processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)
-                        batch_outputs.append(output_text[0])
+                    generated_ids = self.model.generate(
+                        **inputs,
+                        max_new_tokens=512,
+                    )
+                     
+                    generated_ids_trimmed = [
+                        out_ids[len(in_ids):] 
+                        for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+                    ]
+                    batch_outputs = self.processor.batch_decode(
+                        generated_ids_trimmed, 
+                        skip_special_tokens=True, 
+                        clean_up_tokenization_spaces=False
+                    )
+                
                 
                 keep_flags = self.process_batch_outputs(batch_outputs)
                 
-
+                # Filter the batch data
                 for i, keep in enumerate(keep_flags):
                     if keep:
                         filtered_dataset.append(batch_data[i])
                 
+            
+                
             except Exception as e:
                 print(f"Error processing batch {batch_idx}: {e}")
+                continue
         
         print(f"Filtering complete! Kept {len(filtered_dataset)} out of {len(dataset)} examples ({len(filtered_dataset)/len(dataset)*100:.2f}%)")
         return filtered_dataset
