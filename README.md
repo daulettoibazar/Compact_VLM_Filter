@@ -5,7 +5,7 @@
 <h1 align="center"> TRUST THE MODEL: Compact VLMs as In-Context Judges for Image-Text Data Quality</h1>
 
 <p align="center">
-  <a href="TODO: arxiv link"><img src="https://img.shields.io/badge/arXiv-Paper-blue" alt="arXiv Paper"></a>
+  <a href="https://arxiv.org/abs/2507.20156"><img src="https://img.shields.io/badge/arXiv-Paper-blue" alt="arXiv Paper"></a>
   <a href="https://huggingface.co/Dauka-transformers/Compact_VLM_filter"><img src="https://img.shields.io/badge/HuggingFace-Model-yellow" alt="HuggingFace Model"></a>
   <a href="https://huggingface.co/datasets/Dauka-transformers/Tiny_VLM_filter_data"><img src="https://img.shields.io/badge/HuggingFace-Dataset-yellow" alt="HuggingFace Dataset"></a>
   <a href="TODO: license link"><img src="https://img.shields.io/badge/License-Apache_2.0-green.svg" alt="License"></a>
@@ -48,7 +48,7 @@
 
 ### 📂 Resources
 
-- 📄 **[Paper (coming soon)]()**  
+- 📄 **[Paper](https://arxiv.org/abs/2507.20156)**  
 - 🤗 **[Model on HuggingFace](https://huggingface.co/Dauka-transformers/Compact_VLM_filter)**  
 - 📁 **[Dataset Access](https://huggingface.co/datasets/Dauka-transformers/Tiny_VLM_filter_data)**  
 - 🔧 **[Filtration model training scripts (Coming soon)]()**
@@ -91,4 +91,13 @@ These datasets were instrumental in training our filtration-oriented small VLM.
 If you find this work useful, please consider citing:
 
 ```code
+@misc{toibazar2025trustmodelcompactvlms,
+      title={Trust the Model: Compact VLMs as In-Context Judges for Image-Text Data Quality}, 
+      author={Daulet Toibazar and Kesen Wang and Sherif Mohamed and Abdulaziz Al-Badawi and Abdulrahman Alfulayt and Pedro J. Moreno},
+      year={2025},
+      eprint={2507.20156},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2507.20156}, 
+}
 ```
